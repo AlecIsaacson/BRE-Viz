@@ -1,0 +1,7 @@
+{
+    "schemaType": "LAUNCHER",
+    "id": "bre-viz-launcher",
+    "displayName": "BRE Visualizations",
+    "description": "Custom visualizations for BRE.",
+    "rootNerdletId": "bre-viz-nerdlet"
+}
