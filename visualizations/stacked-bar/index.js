@@ -31,15 +31,24 @@ export default class StackedBarVisualization extends React.Component {
   };
 
   /**
-   * Transform the data to a format that the bar chart wants.
+   * Transform the data to a format that the bar chart wants.  This works.
    */
   transformData = (rawData) => {
-    console.debug('Raw Data:', rawData)
     return rawData.map((entry) => ({
       name: entry.metadata.name,
       value: entry.data[0].count,
     }));
   };
+
+  // What I want is something like this, which processes all the series except for the one named 'Other'
+  //
+  // transformData = (rawData) => {
+  //   return rawData.map((entry) => (
+  //     if (entry.metadata.name != 'Other') {
+  //       name: entry.metadata.name,
+  //       value: entry.data[0].count,
+  //   }));
+  // };
 
   /**
    * Format the given axis tick's numeric value into a string for display.
