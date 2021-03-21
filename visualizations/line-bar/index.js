@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, CardBody, HeadingText, NrqlQuery, Spinner, AutoSizer } from 'nr1';
 import dayjs from 'dayjs'
 
@@ -26,29 +26,17 @@ export default class StackedBarVisualization extends React.Component {
     nrqlQueries: PropTypes.arrayOf(
       PropTypes.shape({
         accountId: PropTypes.number,
-        query: PropTypes.string,
+        lineQuery: PropTypes.string,
       })
     ),
   };
 
-  // This helper transforms non-timeseries data to the format recharts bar component is expecting.
+  /**
+   * Transform the data to a format that the bar chart wants.
+   */
   transformData = (rawData) => {
-    const transformedData = rawData.map((entry) => {
-        return {
-          name: entry.metadata.name,
-          value: entry.data[0].y,
-        }
-    });
-    const filteredData = transformedData.filter((data) => {
-      return data.name !== 'Other'
-    })
-    return filteredData
-  };
-
-  // This helper transforms timeseries data to the format recharts expects.
-  transformTimeseries = (rawData) => {
     return rawData.map((entry) => ({
-      name: dayjs(entry.x).format('HH:mm'),
+      name: entry.x,
       value: entry.y,
     }));
   };
@@ -67,7 +55,7 @@ export default class StackedBarVisualization extends React.Component {
       nrqlQueries &&
       nrqlQueries[0] &&
       nrqlQueries[0].accountId &&
-      nrqlQueries[0].query;
+      nrqlQueries[0].lineQuery;
 
     if (!nrqlQueryPropsAvailable) {
       return <EmptyState />;
@@ -76,7 +64,11 @@ export default class StackedBarVisualization extends React.Component {
     return (
       <AutoSizer>
         {({width, height}) => (
-          <NrqlQuery query={nrqlQueries[0].query} accountId={parseInt(nrqlQueries[0].accountId)} pollInterval={NrqlQuery.AUTO_POLL_INTERVAL} >
+          <NrqlQuery
+            query={nrqlQueries[0].lineQuery}
+            accountId={parseInt(nrqlQueries[0].accountId)}
+            pollInterval={NrqlQuery.AUTO_POLL_INTERVAL}
+          >
             {({data, loading, error}) => {
               if (loading) {
                 return <Spinner />;
@@ -87,28 +79,23 @@ export default class StackedBarVisualization extends React.Component {
               }
 
               console.debug('Raw data:', data)
+              // console.debug('Here is X:', data[0].data[0].x)
+              // console.debug('Here is value:', data[0].data[0].count)
 
-              // If the query contains the string timeseries, then we need to process this differently.
-              if (nrqlQueries[0].query.match(/timeseries/i)) {
-                console.debug('Timeseries')
-                var transformedData = this.transformTimeseries(data[0].data);
-              } else {
-                var transformedData = this.transformData(data);
-              }
-
-              console.debug('Transformed Data:', transformedData)
+              const transformedData = this.transformData(data[0].data)
+              console.debug('Transformed data:', transformedData)
 
               return (
-                <BarChart
+                <LineChart
                   width={width}
                   height={height}
                   data={transformedData}
                 >
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="name" tickFormatter = {(unixTime) => dayjs(unixTime).format('HH:mm')} />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="value" fill={ fill || '#8884d8' }/>
-                </BarChart>
+                  <Line dataKey="value" fill={ fill || '#8884d8' }/>
+                </LineChart>
               );
             }}
           </NrqlQuery>
