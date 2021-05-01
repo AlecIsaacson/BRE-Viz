@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip } from 'recharts';
-import { Card, CardBody, HeadingText, NrqlQuery, Spinner, AutoSizer } from 'nr1';
+// import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip } from 'recharts';
+import { Table, TableHeader, TableHeaderCell, TableRow, TableRowCell, TableChart, Card, CardBody, HeadingText, NrqlQuery, Spinner, AutoSizer } from 'nr1';
 import dayjs from 'dayjs'
 
 export default class StackedBarVisualization extends React.Component {
@@ -45,32 +45,6 @@ export default class StackedBarVisualization extends React.Component {
     return filteredData
   };
 
-  // This helper transforms timeseries data to the format recharts expects.
-  // transformTimeseries = (rawData) => {
-  //   return rawData.map((entry) => ({
-  //     name: dayjs(entry.x).format('HH:mm'),
-  //     value: entry.y,
-  //   }));
-  // };
-
-  transformTimeseries = (rawData) => {
-    const transformedData = rawData.map((entry) => {
-      console.debug('Entry:', entry)
-      return {
-        name: dayjs(entry.x).format('HH:mm'),
-        value: entry.y,
-      }
-    });
-    return transformedData
-  };
-
-  /**
-   * Format the given axis tick's numeric value into a string for display.
-   */
-  formatTick = (value) => {
-    return value.toLocaleString();
-  };
-
   render() {
     const {nrqlQueries, stroke, fill} = this.props;
 
@@ -80,6 +54,12 @@ export default class StackedBarVisualization extends React.Component {
       nrqlQueries[0].accountId &&
       nrqlQueries[0].query;
 
+    const cellStyle = (item) => {
+      if (item > 150) {
+        return "red"
+      }
+    }
+
     if (!nrqlQueryPropsAvailable) {
       return <EmptyState />;
     }
@@ -87,7 +67,7 @@ export default class StackedBarVisualization extends React.Component {
     return (
       <AutoSizer>
         {({width, height}) => (
-          <NrqlQuery query={nrqlQueries[0].query} accountId={parseInt(nrqlQueries[0].accountId)} pollInterval={NrqlQuery.AUTO_POLL_INTERVAL} >
+          <NrqlQuery query={nrqlQueries[0].query} accountId={parseInt(nrqlQueries[0].accountId)} pollInterval={NrqlQuery.AUTO_POLL_INTERVAL} formatType={NrqlQuery.FORMAT_TYPE.RAW}>
             {({data, loading, error}) => {
               if (loading) {
                 return <Spinner />;
@@ -99,27 +79,27 @@ export default class StackedBarVisualization extends React.Component {
 
               console.debug('Raw data:', data)
 
-              // If the query contains the string timeseries, then we need to process this differently.
-              if (nrqlQueries[0].query.match(/timeseries/i)) {
-                console.debug('Timeseries')
-                var transformedData = this.transformTimeseries(data[0].data);
-              } else {
-                var transformedData = this.transformData(data);
-              }
+              //var transformedData = this.transformData(data);
 
-              console.debug('Transformed Data:', transformedData)
+              //console.debug('Transformed Data:', transformedData)
 
               return (
-                <BarChart
-                  width={width}
-                  height={height}
-                  data={transformedData}
-                >
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill={ fill || '#8884d8' }/>
-                </BarChart>
+                <Table items={data} rowCount={data.count}>
+                  <TableHeader>
+                    <TableHeaderCell value={({ item }) => item.metadata.name}>
+                      Command Name
+                    </TableHeaderCell>
+                    <TableHeaderCell value={({ item }) => item.data.y}>
+                      Count
+                    </TableHeaderCell>
+                  </TableHeader>
+                  {({ item }) => (
+                    <TableRow>
+                      <TableRowCell>{item.metadata.name}</TableRowCell>
+                      <TableRowCell className={cellStyle(item.data[0].y)}>{item.data[0].y}</TableRowCell>
+                    </TableRow>
+                  )}
+                </Table>
               );
             }}
           </NrqlQuery>
