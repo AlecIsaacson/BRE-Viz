@@ -46,22 +46,20 @@ export default class StackedBarVisualization extends React.Component {
   };
 
   // This helper transforms timeseries data to the format recharts expects.
-  // transformTimeseries = (rawData) => {
-  //   return rawData.map((entry) => ({
-  //     name: dayjs(entry.x).format('HH:mm'),
-  //     value: entry.y,
-  //   }));
-  // };
-
   transformTimeseries = (rawData) => {
     const transformedData = rawData.map((entry) => {
-      console.debug('Entry:', entry)
-      return {
-        name: dayjs(entry.x).format('HH:mm'),
-        value: entry.y,
-      }
+      //console.debug('Entry:', entry)
+      const series = entry.data.map((item) => {
+        //console.debug('Item', item)
+        return {
+          name: dayjs(item.x).format('HH:mm'),
+          value: item.y,
+        }
+      });
+      //console.debug('Series', series)
+      return series
     });
-    return transformedData
+    return transformedData[0]
   };
 
   /**
@@ -102,7 +100,7 @@ export default class StackedBarVisualization extends React.Component {
               // If the query contains the string timeseries, then we need to process this differently.
               if (nrqlQueries[0].query.match(/timeseries/i)) {
                 console.debug('Timeseries')
-                var transformedData = this.transformTimeseries(data[0].data);
+                var transformedData = this.transformTimeseries(data);
               } else {
                 var transformedData = this.transformData(data);
               }

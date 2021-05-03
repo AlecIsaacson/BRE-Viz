@@ -46,13 +46,6 @@ export default class StackedBarVisualization extends React.Component {
   };
 
   // This helper transforms timeseries data to the format recharts expects.
-  // transformTimeseries = (rawData) => {
-  //   return rawData.map((entry) => ({
-  //     name: dayjs(entry.x).format('HH:mm'),
-  //     value: entry.y,
-  //   }));
-  // };
-
   transformTimeseries = (rawData) => {
     const transformedData = rawData.map((entry) => {
       //console.debug('Entry:', entry)
@@ -68,9 +61,6 @@ export default class StackedBarVisualization extends React.Component {
     });
     return transformedData[0]
   };
-
-  //array1.forEach(element => console.log(element));
-
 
   /**
    * Format the given axis tick's numeric value into a string for display.
@@ -95,7 +85,7 @@ export default class StackedBarVisualization extends React.Component {
     return (
       <AutoSizer>
         {({width, height}) => (
-          <NrqlQuery query={nrqlQueries[0].query} accountId={parseInt(nrqlQueries[0].accountId)} pollInterval={NrqlQuery.AUTO_POLL_INTERVAL} >
+          <NrqlQuery query={nrqlQueries[0].query} accountId={parseInt(nrqlQueries[0].accountId)} pollInterval={NrqlQuery.AUTO_POLL_INTERVAL} formatType={NrqlQuery.FORMAT_TYPE.TABLE}>
             {({data, loading, error}) => {
               if (loading) {
                 return <Spinner />;
@@ -110,24 +100,23 @@ export default class StackedBarVisualization extends React.Component {
               // If the query contains the string timeseries, then we need to process this differently.
               if (nrqlQueries[0].query.match(/timeseries/i)) {
                 console.debug('Timeseries')
-                //var transformedData = this.transformTimeseries(data[0].data);
-                var transformedData = this.transformTimeseries(data);
+                //var transformedData = this.transformTimeseries(data);
               } else {
-                var transformedData = this.transformData(data);
+                //var transformedData = this.transformData(data);
               }
 
-              console.debug('Transformed Data:', transformedData)
+              //console.debug('Transformed Data:', transformedData)
 
               return (
                 <BarChart
                   width={width}
                   height={height}
-                  data={transformedData}
+                  //data={transformedData}
                 >
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="value" stackId="a" fill={ fill || '#8884d8' }/>
+                  <Bar dataKey="value" fill={ fill || '#8884d8' }/>
                 </BarChart>
               );
             }}
